@@ -1,0 +1,16 @@
+name: CluedIn.Nuget-Installer-$(Build.BuildId)
+
+trigger:
+- master
+
+pool:
+  vmImage: 'win1803'
+
+steps:
+- task: Docker@2
+  displayName: "Build and push image"
+  inputs:
+    containerRegistry: 'Docker Hub'
+    repository: cluedin/nuget-installer
+    command: 'buildAndPush'
+    tags: latest
