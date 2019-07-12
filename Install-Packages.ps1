@@ -42,8 +42,11 @@ $packages | ForEach-Object {
     & $nuget install $_ -prerelease -outputDirectory $outputDir -configfile $nugetConfig -NonInteractive
 }
 
-# Hack temporarily
-pushd $outputDir
-gci -Exclude *.Navision* | rm -Force -Recurse
-gci *.dll -Recurse | move-item -destination .
-popd
+# Flatten all dlls from all packages into root folder
+
+Push-Location $outputDir
+Get-ChildItem *.dll -Recurse | Move-Item -Destination .
+Move-Item *.dll -Recurse -Destination .
+Get-ChildItem -Directory | Remove-Item -Force
+Pop-Location
+
