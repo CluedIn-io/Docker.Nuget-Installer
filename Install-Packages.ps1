@@ -46,6 +46,8 @@ $packages | ForEach-Object {
 
 Push-Location $outputDir
 Get-ChildItem *.dll -Recurse | Move-Item -Destination .
-Get-ChildItem -Directory | Remove-Item -Force
+Get-ChildItem -Directory | Remove-Item -Force -Recurse
+Write-Output "List of files in the $outputDir folder"
+Get-ChildItem
 Pop-Location
 
