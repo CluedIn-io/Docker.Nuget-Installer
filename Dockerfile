@@ -1,4 +1,6 @@
-FROM mcr.microsoft.com/powershell:windowsservercore-1803
+ARG VERSION=1803
+ARG TYPE=windowsservercore
+FROM mcr.microsoft.com/powershell:${TYPE}-${VERSION}
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'Continue'; $verbosePreference='Continue';"]
 

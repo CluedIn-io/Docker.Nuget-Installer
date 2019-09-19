@@ -3,14 +3,32 @@ name: CluedIn.Nuget-Installer-$(Build.BuildId)
 trigger:
 - master
 
+strategy:
+  maxParallel: 2
+  matrix:
+    Win2018:
+      windowsBaseTag: '1803'
+      pool: 'win1803'
+    Win2019:
+      windowsBaseTag: '2019'
+      pool: 'windows-2019'
 pool:
-  vmImage: 'win1803'
+  vmImage: '$(pool)'
 
 steps:
 - task: Docker@2
-  displayName: "Build and push image"
+  displayName: "Build image"
   inputs:
     containerRegistry: 'Docker Hub'
     repository: cluedin/nuget-installer
-    command: 'buildAndPush'
-    tags: latest
+    command: build
+    tags: $(windowsBaseTag)-latest
+    arguments: --build-arg VERSION=$(windowsBaseTag)
+
+- task: Docker@2
+  displayName: "Push image"
+  inputs:
+    containerRegistry: 'Docker Hub'
+    repository: cluedin/nuget-installer
+    command: push
+    tags: $(windowsBaseTag)-latest
