@@ -10,7 +10,7 @@ strategy:
       windowsBaseTag: '1803'
       pool: 'win1803'
     Win2019:
-      windowsBaseTag: '2019'
+      windowsBaseTag: '1903'
       pool: 'windows-2019'
 pool:
   vmImage: '$(pool)'
