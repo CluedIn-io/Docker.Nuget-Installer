@@ -38,8 +38,12 @@ if($FeedNames -And $Key){
 New-Item -ItemType Directory -Path $outputDir -Force
 
 $packages | ForEach-Object {
-        write-output "Trying to install $_"
+    write-output "Trying to install $_"
     & $nuget install $_ -prerelease -outputDirectory $outputDir -configfile $nugetConfig -NonInteractive
+    if (-not $? ) {
+        Write-Output "##vso[task.logissue type=error]Could not install package $_."
+        exit 1
+    }
 }
 
 # Flatten all dlls from all packages into root folder
