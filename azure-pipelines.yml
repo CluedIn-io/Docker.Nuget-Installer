@@ -22,7 +22,9 @@ steps:
     containerRegistry: 'Docker Hub'
     repository: cluedin/nuget-installer
     command: build
-    tags: $(windowsBaseTag)-latest
+    tags: |
+      $(windowsBaseTag)-$(Build.BuildId)
+      $(windowsBaseTag)-latest
     arguments: --build-arg VERSION=$(windowsBaseTag)
 
 - task: Docker@2
@@ -31,4 +33,6 @@ steps:
     containerRegistry: 'Docker Hub'
     repository: cluedin/nuget-installer
     command: push
-    tags: $(windowsBaseTag)-latest
+    tags: |
+      $(windowsBaseTag)-$(Build.BuildId)    
+      $(windowsBaseTag)-latest
