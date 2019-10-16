@@ -49,7 +49,7 @@ $packages | ForEach-Object {
 # Flatten all dlls from all packages into root folder
 
 Push-Location $outputDir
-Get-ChildItem *.dll -Recurse | Move-Item -Destination .
+Get-ChildItem *.dll -Recurse | Move-Item -Destination . -Force
 Get-ChildItem -Directory | Remove-Item -Force -Recurse
 Write-Output "List of files in the $outputDir folder"
 Get-ChildItem
