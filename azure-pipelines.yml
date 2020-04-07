@@ -6,9 +6,6 @@ trigger:
 strategy:
   maxParallel: 2
   matrix:
-    Win2018:
-      windowsBaseTag: '1803'
-      pool: 'win1803'
     Win2019:
       windowsBaseTag: '1809'
       pool: 'windows-2019'

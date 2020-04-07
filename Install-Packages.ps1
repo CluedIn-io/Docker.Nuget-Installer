@@ -49,15 +49,15 @@ $packages | ForEach-Object {
 # Flatten all dlls from all packages into root folder
 
 Push-Location $outputDir
-Get-ChildItem *\lib\net452\*.dll -Recurse | Move-Item -Destination .
-Get-ChildItem *\lib\net451\*.dll -Recurse | Move-Item -Destination .
-Get-ChildItem *\lib\net45\*.dll -Recurse | Move-Item -Destination .
-Get-ChildItem *\lib\net403\*.dll -Recurse | Move-Item -Destination .
-Get-ChildItem *\lib\net40\*.dll -Recurse | Move-Item -Destination .
-Get-ChildItem *\lib\net35\*.dll -Recurse | Move-Item -Destination .
-Get-ChildItem *\lib\net20\*.dll -Recurse | Move-Item -Destination .
-Get-ChildItem *\lib\net11\*.dll -Recurse | Move-Item -Destination .
-Get-ChildItem *.dll -Recurse | Move-Item -Destination .
+Get-ChildItem *\lib\net452\*.dll -Recurse | Move-Item -Destination . -ErrorAction SilentlyContinue
+Get-ChildItem *\lib\net451\*.dll -Recurse | Move-Item -Destination . -ErrorAction SilentlyContinue
+Get-ChildItem *\lib\net45\*.dll -Recurse | Move-Item -Destination . -ErrorAction SilentlyContinue
+Get-ChildItem *\lib\net403\*.dll -Recurse | Move-Item -Destination . -ErrorAction SilentlyContinue
+Get-ChildItem *\lib\net40\*.dll -Recurse | Move-Item -Destination . -ErrorAction SilentlyContinue
+Get-ChildItem *\lib\net35\*.dll -Recurse | Move-Item -Destination . -ErrorAction SilentlyContinue
+Get-ChildItem *\lib\net20\*.dll -Recurse | Move-Item -Destination . -ErrorAction SilentlyContinue
+Get-ChildItem *\lib\net11\*.dll -Recurse | Move-Item -Destination . -ErrorAction SilentlyContinue
+Get-ChildItem *.dll -Recurse | Move-Item -Destination . -ErrorAction SilentlyContinue
 Get-ChildItem -Directory | Remove-Item -Force -Recurse
 Write-Output "List of files in the $outputDir folder"
 Get-ChildItem
