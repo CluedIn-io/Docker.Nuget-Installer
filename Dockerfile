@@ -1,4 +1,4 @@
-ARG VERSION=1903
+ARG VERSION=1809
 ARG TYPE=nanoserver
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1.201-${TYPE}-${VERSION}
 
