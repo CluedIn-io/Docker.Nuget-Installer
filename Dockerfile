@@ -1,11 +1,8 @@
-ARG VERSION=1803
-ARG TYPE=windowsservercore
-FROM mcr.microsoft.com/powershell:6.2.3-${TYPE}-${VERSION}
+ARG VERSION=3.1
+FROM mcr.microsoft.com/dotnet/core/sdk:${VERSION}
 
-SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'Continue'; $verbosePreference='Continue';"]
-
-RUN Invoke-WebRequest -OutFile /nuget.exe -Uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
+SHELL ["pwsh", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'Continue'; $verbosePreference='Continue';"]
 
 WORKDIR /scripts
 
-COPY Install-Packages.ps1 .
+COPY install-packages.ps1 .

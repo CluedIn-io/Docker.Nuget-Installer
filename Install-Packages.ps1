@@ -1,65 +1,59 @@
+#!/usr/bin/env pwsh
+[CmdletBinding()]
 param(
-    [string]$UserName="VssSessionToken",
-    [string]$Key=$env:KEY,
-    [string[]]$FeedNames,
-    [string]$PackageListFile="Packages.txt",
-    [string]$nuget="\nuget.exe",
-    [string]$outputDir="\packages",
-    [string]$nugetConfig
+    [String]$UserName = "VssSessionToken",
+    [String]$Key = $env:KEY,
+    [String[]]$FeedNames = $null,
+    [String]$PackageListFile = (Join-Path -Path $PSScriptRoot -ChildPath "Packages.txt"),
+    [String]$OutputDir = (Join-Path -Path $PSScriptRoot -ChildPath "packages"),
+    [String]$NugetConfig = (Join-Path -path $PSScriptRoot -ChildPath 'nuget.config'),
+    [String]$TargetFramework = 'net452'
 )
 
-$root = $PSScriptRoot
+# Get the packages
+$resolvedPackagePath = Resolve-Path $PackageListFile
+$packages = Get-Content ($resolvedPackagePath.Path) | 
+    ForEach-Object {
+        $id,$version = $_ -split ' '
+        [PSCustomObject]@{
+            Id = $id
+            Version = $version
+        }
+    }
 
-if (-Not($PackageListFile)){
-    $PackageListFile = (Join-Path -Path $root -ChildPath "Packages.txt")
-}
-
-if(-Not(Test-Path $PackageListFile)){
-    throw "Package list file $PackageListFile not found"
-}
-
-if (-Not($nugetConfig)){
-    $nugetConfig = (Join-Path -path $root -ChildPath 'nuget.config')
-}
-
-if(-Not(Test-Path $nugetConfig)){
-    throw "nuget.config not found"
-}
-# List nuget packages to download
-$packages = $(get-content $PackageListFile)
-
+# Configure NuGet
+$resolvedNugetPath = Resolve-Path $NugetConfig
 if($FeedNames -And $Key){
     $FeedNames | ForEach-Object {
-        & $nuget sources update -Name $_ -UserName $UserName -Password $Key -configfile $nugetConfig
-    }
-
-}
-
-New-Item -ItemType Directory -Path $outputDir -Force
-
-$packages | ForEach-Object {
-    write-output "Trying to install $_"
-    & $nuget install $_ -prerelease -outputDirectory $outputDir -configfile $nugetConfig -NonInteractive
-    if (-not $? ) {
-        Write-Output "##vso[task.logissue type=error]Could not install package $_."
-        exit 1
+        dotnet nuget update source $_ -u $UserName -p $Key -configfile $resolvedNugetPath
     }
 }
 
-# Flatten all dlls from all packages into root folder
+# Dotnet restore
+$projectName = "Project$([Guid]::NewGuid().ToString("N"))"
+$projectPath = Join-Path $PSScriptRoot $projectName
+# We could use the dotnet cli but... it's slow
+# We could use System.Xml but we're doing some basic things
+# Just use here-strings
+$projectContents = @"
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>${TargetFramework}</TargetFramework>
+    <Configuration>Release</Configuration>
+    <DebugType>None</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+  $($packages | ForEach-Object {
+    "<PackageReference Include='$($_.Id)' Version='$($_.Version)' />$([Environment]::NewLine)"    
+    })
+  </ItemGroup>
+</Project>
+"@
 
-Push-Location $outputDir
-Get-ChildItem *\lib\net452\*.dll -Recurse | Move-Item -Destination . -ErrorAction SilentlyContinue
-Get-ChildItem *\lib\net451\*.dll -Recurse | Move-Item -Destination . -ErrorAction SilentlyContinue
-Get-ChildItem *\lib\net45\*.dll -Recurse | Move-Item -Destination . -ErrorAction SilentlyContinue
-Get-ChildItem *\lib\net403\*.dll -Recurse | Move-Item -Destination . -ErrorAction SilentlyContinue
-Get-ChildItem *\lib\net40\*.dll -Recurse | Move-Item -Destination . -ErrorAction SilentlyContinue
-Get-ChildItem *\lib\net35\*.dll -Recurse | Move-Item -Destination . -ErrorAction SilentlyContinue
-Get-ChildItem *\lib\net20\*.dll -Recurse | Move-Item -Destination . -ErrorAction SilentlyContinue
-Get-ChildItem *\lib\net11\*.dll -Recurse | Move-Item -Destination . -ErrorAction SilentlyContinue
-Get-ChildItem *.dll -Recurse | Move-Item -Destination . -ErrorAction SilentlyContinue
-Get-ChildItem -Directory | Remove-Item -Force -Recurse
-Write-Output "List of files in the $outputDir folder"
-Get-ChildItem
-Pop-Location
+New-Item -ItemType Directory -Path $projectPath -Force | Out-Null
+$projectContext | Set-Content (Join-Path $projectPath "${projectName}.csproj")
 
+# Perform the restore
+dotnet publish $projectPath -o $OutputDir
+Write-Output "Restored Files:"
+Get-ChildItem $OutputDir -Recurse | Select-Object -ExpandProperty Name
