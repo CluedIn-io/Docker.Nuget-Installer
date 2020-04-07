@@ -1,5 +1,6 @@
-ARG VERSION=3.1
-FROM mcr.microsoft.com/dotnet/core/sdk:${VERSION}
+ARG VERSION=1903
+ARG TYPE=nanoserver
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1.201-${TYPE}-${VERSION}
 
 SHELL ["pwsh", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'Continue'; $verbosePreference='Continue';"]
 
