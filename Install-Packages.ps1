@@ -14,27 +14,34 @@ param(
 $resolvedPackagePath = Resolve-Path $PackageListFile
 $packages = Get-Content ($resolvedPackagePath.Path) | 
     ForEach-Object {
-        $id,$version = $_ -split ' '
+        $id,$version = $_ -split ' '        
+        if(!$version) {            
+            Write-Warrning "No version found for package $id. Using latest release version instead."
+            # TODO: When *-* is supported change to default version
+            $version = '*'
+        }
         [PSCustomObject]@{
             Id = $id
             Version = $version
         }
     }
 
+
+
 # Configure NuGet
 $resolvedNugetPath = Resolve-Path $NugetConfig
 if($FeedNames -And $Key){
     $FeedNames | ForEach-Object {
-        dotnet nuget update source $_ -u $UserName -p $Key -configfile $resolvedNugetPath
+        dotnet nuget update source $_ -u $UserName -p $Key --configfile $resolvedNugetPath
     }
 }
 
 # Dotnet restore
 $projectName = "Project$([Guid]::NewGuid().ToString("N"))"
 $projectPath = Join-Path $PSScriptRoot $projectName
-# We could use the dotnet cli but... it's slow
-# We could use System.Xml but we're doing some basic things
-# Just use here-strings
+# We could use the dotnet cli but... it's slow.
+# We could use System.Xml but we're doing some basic things.
+# Just use here-strings.
 $projectContents = @"
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
