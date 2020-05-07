@@ -26,7 +26,13 @@ if(-Not(Test-Path $nugetConfig)){
     throw "nuget.config not found"
 }
 # List nuget packages to download
-$packages = $(get-content $PackageListFile)
+$packages = $(get-content $PackageListFile) | ForEach-Object {
+    $name,$version = $_.Split(' ', [System.StringSplitOptions]::RemoveEmptyEntries)
+    [PSCustomObject]@{
+        Name = $name
+        Version = $version
+    }
+}
 
 if($FeedNames -And $Key){
     $FeedNames | ForEach-Object {
@@ -38,10 +44,26 @@ if($FeedNames -And $Key){
 New-Item -ItemType Directory -Path $outputDir -Force
 
 $packages | ForEach-Object {
-    write-output "Trying to install $_"
-    & $nuget install $_ -prerelease -outputDirectory $outputDir -configfile $nugetConfig -NonInteractive
+    $nugetArgs = @(
+        'install', $_.Name
+        '-OutputDirectory', $outputDir
+        '-configFile', $nugetConfig
+        '-DependencyVersion', 'Ignore'
+        '-NonInteractive'
+        '-Prerelease'
+    )
+
+    $idStub = $_.Name
+
+    if($_.Version) {
+        $nugetArgs += @('-Version', $_.Version)
+        $idStub += " [$($_.Version)]"
+    }
+
+    Write-Output $message = "Trying to install ${idStub}"
+    & $nuget $nugetArgs
     if (-not $? ) {
-        Write-Output "##vso[task.logissue type=error]Could not install package $_."
+        Write-Output "##vso[task.logissue type=error]Could not install package ${idStub}."
         exit 1
     }
 }
